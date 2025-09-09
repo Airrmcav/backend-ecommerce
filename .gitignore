@@ -120,7 +120,11 @@ coverage
 ############################
 # Strapi
 ############################
-
+.env.test
+.env.neon
+.env.production
+.env.development
+.env.example
 .env
 license.txt
 exports
