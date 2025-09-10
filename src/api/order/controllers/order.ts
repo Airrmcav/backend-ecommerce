@@ -43,7 +43,7 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
                 payment_method_types: ["card"],
                 mode: "payment",
                 success_url: `${process.env.CLIENT_URL}/success`,
-                cancel_url: `${process.env.CLIENT_URL}/successError`,
+                cancel_url: `${process.env.CLIENT_URL}/error`,
                 line_items: lineItems, 
             });
 
