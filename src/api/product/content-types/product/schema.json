@@ -60,7 +60,8 @@
       "enum": [
         "Equipos de diagnóstico",
         "Equipos de tratamiento / quirúrgicos",
-        "Mobiliario médico"
+        "Mobiliario médico",
+        "Insumos Médicos"
       ]
     }
   }

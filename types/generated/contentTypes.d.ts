@@ -448,6 +448,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         'Equipos de diagn\u00F3stico',
         'Equipos de tratamiento / quir\u00FArgicos',
         'Mobiliario m\u00E9dico',
+        'Insumos M\u00E9dicos',
       ]
     >;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
