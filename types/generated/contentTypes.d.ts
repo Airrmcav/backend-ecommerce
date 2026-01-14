@@ -444,11 +444,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   attributes: {
     active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     area: Schema.Attribute.Enumeration<
-      [
-        'Equipos de diagn\u00F3stico',
-        'Equipos de tratamiento / quir\u00FArgicos',
-        'Mobiliario m\u00E9dico',
-      ]
+      ['Insumos m\u00E9dicos', 'Equipo M\u00E9dico', 'Mobiliario m\u00E9dico']
     >;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     characteristics: Schema.Attribute.JSON;

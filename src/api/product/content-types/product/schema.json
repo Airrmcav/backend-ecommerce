@@ -58,8 +58,8 @@
     "area": {
       "type": "enumeration",
       "enum": [
-        "Equipos de diagnóstico",
-        "Equipos de tratamiento / quirúrgicos",
+        "Insumos médicos",
+        "Equipo Médico",
         "Mobiliario médico"
       ]
     }
