@@ -62,6 +62,9 @@
         "Equipo Médico",
         "Mobiliario médico"
       ]
+    },
+    "textSeo": {
+      "type": "string"
     }
   }
 }

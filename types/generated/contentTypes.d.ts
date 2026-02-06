@@ -467,6 +467,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     productName: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'productName'>;
+    textSeo: Schema.Attribute.String;
     topProduct: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
