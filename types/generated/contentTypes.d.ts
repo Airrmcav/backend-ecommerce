@@ -497,6 +497,7 @@ export interface ApiProgramaPrograma extends Struct.CollectionTypeSchema {
       'api::programa.programa'
     > &
       Schema.Attribute.Private;
+    mainImage: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     namePrograma: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
