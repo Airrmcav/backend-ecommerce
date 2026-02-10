@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "programas",
+  "info": {
+    "singularName": "programa",
+    "pluralName": "programas",
+    "displayName": "Programa"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "namePrograma": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

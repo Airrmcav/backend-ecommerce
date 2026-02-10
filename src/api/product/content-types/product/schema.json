@@ -65,6 +65,11 @@
     },
     "textSeo": {
       "type": "string"
+    },
+    "programa": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::programa.programa"
     }
   }
 }
