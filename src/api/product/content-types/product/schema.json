@@ -64,12 +64,15 @@
       ]
     },
     "textSeo": {
-      "type": "string"
+      "type": "text"
     },
     "programa": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::programa.programa"
+    },
+    "breadCrumbText": {
+      "type": "text"
     }
   }
 }

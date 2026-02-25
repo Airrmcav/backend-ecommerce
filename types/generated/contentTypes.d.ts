@@ -446,6 +446,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     area: Schema.Attribute.Enumeration<
       ['Insumos m\u00E9dicos', 'Equipo M\u00E9dico', 'Mobiliario m\u00E9dico']
     >;
+    breadCrumbText: Schema.Attribute.Text;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
     characteristics: Schema.Attribute.JSON;
     createdAt: Schema.Attribute.DateTime;
@@ -468,7 +469,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     programa: Schema.Attribute.Relation<'oneToOne', 'api::programa.programa'>;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'productName'>;
-    textSeo: Schema.Attribute.String;
+    textSeo: Schema.Attribute.Text;
     topProduct: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
