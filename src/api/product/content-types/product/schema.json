@@ -73,6 +73,9 @@
     },
     "breadCrumbText": {
       "type": "text"
+    },
+    "mercadolibre_url": {
+      "type": "string"
     }
   }
 }
