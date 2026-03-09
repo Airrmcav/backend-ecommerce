@@ -464,6 +464,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'api::product.product'
     > &
       Schema.Attribute.Private;
+    mercadolibre_url: Schema.Attribute.String;
     price: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     productName: Schema.Attribute.String;
     programa: Schema.Attribute.Relation<'oneToOne', 'api::programa.programa'>;
