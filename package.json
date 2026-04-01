@@ -15,6 +15,7 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
+    "@mercadopago/sdk-js": "^0.0.3",
     "@strapi/plugin-cloud": "5.22.0",
     "@strapi/plugin-seo": "^2.0.8",
     "@strapi/plugin-users-permissions": "5.22.0",
@@ -23,7 +24,9 @@
     "axios": "^1.11.0",
     "cloudinary": "^2.7.0",
     "form-data": "^4.0.4",
+    "mercadopago": "^2.12.0",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^8.0.4",
     "pg": "^8.16.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
