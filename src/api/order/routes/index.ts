@@ -1,5 +1,5 @@
 /**
- * order router
+ * order routes - core CRUD operations
  */
 
 import { factories } from '@strapi/strapi';
