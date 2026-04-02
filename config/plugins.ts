@@ -1,4 +1,5 @@
 export default ({ env }) => ({
+  // --- Tu configuración de Cloudinary (Ya la tienes) ---
   upload: {
     config: {
       provider: 'cloudinary',
@@ -14,6 +15,8 @@ export default ({ env }) => ({
       },
     },
   },
+
+  // --- NUEVA CONFIGURACIÓN DE EMAIL (Agrega esto) ---
   email: {
     config: {
       provider: 'nodemailer',
