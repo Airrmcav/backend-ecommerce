@@ -19,6 +19,7 @@
     "@strapi/plugin-cloud": "5.22.0",
     "@strapi/plugin-seo": "^2.0.8",
     "@strapi/plugin-users-permissions": "5.22.0",
+    "@strapi/provider-email-nodemailer": "^5.41.1",
     "@strapi/provider-upload-cloudinary": "^5.23.3",
     "@strapi/strapi": "5.22.0",
     "axios": "^1.11.0",
