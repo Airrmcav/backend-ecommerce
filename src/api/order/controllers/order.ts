@@ -54,7 +54,7 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
                 payment_method_types: ["card"],
                 mode: "payment",
                 success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${process.env.CLIENT_URL}/successError`,
+                cancel_url: `${process.env.CLIENT_URL}/carrito`,
                 line_items: lineItems, 
             });
 
@@ -84,7 +84,7 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
                 return { error: 'session_id es requerido' };
             }
 
-            console.log("📩 Confirmando sesión de Stripe:", session_id);
+            // console.log("📩 Confirmando sesión de Stripe:", session_id);
 
             // Recuperar la sesión completa
             const fullSession = await stripe.checkout.sessions.retrieve(session_id);
@@ -115,12 +115,12 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
                 || {};
 
             // Debug: ver qué datos devuelve Stripe
-            console.log("📋 Datos de sesión Stripe:");
-            console.log("   customer_details:", JSON.stringify(fullSession.customer_details, null, 2));
-            console.log("   shipping_details:", JSON.stringify(fullSession.shipping_details, null, 2));
-            console.log("   shipping:", JSON.stringify(fullSession.shipping, null, 2));
-            console.log("   collected_information:", JSON.stringify(fullSession.collected_information, null, 2));
-            console.log("   line_items:", JSON.stringify(lineItemsResponse.data, null, 2));
+            // console.log("📋 Datos de sesión Stripe:");
+            // console.log("   customer_details:", JSON.stringify(fullSession.customer_details, null, 2));
+            // console.log("   shipping_details:", JSON.stringify(fullSession.shipping_details, null, 2));
+            // console.log("   shipping:", JSON.stringify(fullSession.shipping, null, 2));
+            // console.log("   collected_information:", JSON.stringify(fullSession.collected_information, null, 2));
+            // console.log("   line_items:", JSON.stringify(lineItemsResponse.data, null, 2));
 
             const parsedLineItems = (lineItemsResponse.data || []).map((item) => ({
                 description: item.description || 'Producto',
