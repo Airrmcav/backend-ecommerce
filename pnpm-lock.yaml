@@ -20,6 +20,9 @@ importers:
       '@strapi/plugin-users-permissions':
         specifier: 5.22.0
         version: 5.22.0(b3236725dffa6e96c92e92b2d932c6c6)
+      '@strapi/provider-email-nodemailer':
+        specifier: ^5.41.1
+        version: 5.41.1
       '@strapi/provider-upload-cloudinary':
         specifier: ^5.23.3
         version: 5.33.3
@@ -1924,6 +1927,10 @@ packages:
       react-dom: ^17.0.0 || ^18.0.0
       react-router-dom: ^6.0.0
       styled-components: ^6.0.0
+
+  '@strapi/provider-email-nodemailer@5.41.1':
+    resolution: {integrity: sha512-UBeP7Ba4pGYSeXOVqmWM9ra7VcAO0fCEstX9qnazeOF8NZ6+FitrcGrgSTe8K5wLuEpL6rmnrICkUlnVY8R3eQ==}
+    engines: {node: '>=20.0.0 <=24.x.x', npm: '>=6.0.0'}
 
   '@strapi/provider-email-sendmail@5.22.0':
     resolution: {integrity: sha512-V2GBsPK5ziw5TGCzA4fvGHIxwyNkXVZGsaGJKyGE5pTzAe5aR8WnmlLft93U4W39UDa1lQ5z3EfP17njiI3Y9g==}
@@ -4690,6 +4697,10 @@ packages:
 
   nodemailer-shared@1.1.0:
     resolution: {integrity: sha512-68xW5LSyPWv8R0GLm6veAvm7E+XFXkVgvE3FW0FGxNMMZqMkPFeGDVALfR1DPdSfcoO36PnW7q5AAOgFImEZGg==}
+
+  nodemailer@8.0.1:
+    resolution: {integrity: sha512-5kcldIXmaEjZcHR6F28IKGSgpmZHaF1IXLWFTG+Xh3S+Cce4MiakLtWY+PlBU69fLbRa8HlaGIrC/QolUpHkhg==}
+    engines: {node: '>=6.0.0'}
 
   nodemailer@8.0.4:
     resolution: {integrity: sha512-k+jf6N8PfQJ0Fe8ZhJlgqU5qJU44Lpvp2yvidH3vp1lPnVQMgi4yEEMPXg5eJS1gFIJTVq1NHBk7Ia9ARdSBdQ==}
@@ -8835,6 +8846,10 @@ snapshots:
       - supports-color
       - typescript
 
+  '@strapi/provider-email-nodemailer@5.41.1':
+    dependencies:
+      nodemailer: 8.0.1
+
   '@strapi/provider-email-sendmail@5.22.0':
     dependencies:
       '@strapi/utils': 5.22.0
@@ -12106,6 +12121,8 @@ snapshots:
   nodemailer-shared@1.1.0:
     dependencies:
       nodemailer-fetch: 1.6.0
+
+  nodemailer@8.0.1: {}
 
   nodemailer@8.0.4: {}
 
