@@ -4,7 +4,7 @@ module.exports = ({ env }) => ({
       provider: 'nodemailer',
       providerOptions: {
         host: env('SMTP_HOST', 'smtp.titan.email'),
-        port: env.int('SMTP_PORT', 465),
+        port: env.int('SMTP_PORT', 587),
         auth: {
           user: env('SMTP_USER'),
           pass: env('SMTP_PASS'),
