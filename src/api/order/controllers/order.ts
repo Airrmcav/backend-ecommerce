@@ -64,8 +64,8 @@ module.exports = factories.createCoreController(
           shipping_address_collection: { allowed_countries: ["MX"] },
           payment_method_types: ["card"],
           mode: "payment",
-          success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // ✅ FIX
-          cancel_url: `${process.env.CLIENT_URL}/carrito`,
+          success_url: `${process.env.CLIENT_URL}success?session_id={CHECKOUT_SESSION_ID}`, // ✅ FIX
+          cancel_url: `${process.env.CLIENT_URL}carrito`,
           line_items: lineItems,
         });
 
