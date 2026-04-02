@@ -1,19 +1,4 @@
-export default ({ env }) => ({
-  upload: {
-    config: {
-      provider: 'cloudinary',
-      providerOptions: {
-        cloud_name: env('CLOUDINARY_NAME'),
-        api_key: env('CLOUDINARY_KEY'),
-        api_secret: env('CLOUDINARY_SECRET'),
-      },
-      actionOptions: {
-        upload: {},
-        uploadStream: {},
-        delete: {},
-      },
-    },
-  },
+module.exports = ({ env }) => ({
   email: {
     config: {
       provider: 'nodemailer',
@@ -24,7 +9,7 @@ export default ({ env }) => ({
           user: env('SMTP_USER'),
           pass: env('SMTP_PASS'),
         },
-        secure: false, 
+        secure: true, // Titan usa SSL en el puerto 465
       },
       settings: {
         defaultFrom: env('SMTP_FROM'),

@@ -27,18 +27,6 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
         //@ts-ignore
         const { products } = ctx.request.body;
 
-    if (!products || !Array.isArray(products) || products.length === 0) {
-        ctx.response.status = 400;
-        return { error: "Orden inválida: no hay productos" };
-    }
-
-    for (const product of products) {
-        if (!product.id) {
-            ctx.response.status = 400;
-            return { error: "Producto inválido" };
-        }
-    }
-
         try {
             const lineItems = await Promise.all(
                 products.map(async (product) => {
@@ -65,8 +53,8 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
                 shipping_address_collection: { allowed_countries: ["MX"] },
                 payment_method_types: ["card"],
                 mode: "payment",
-                success_url: `${process.env.CLIENT_URL}success?session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${process.env.CLIENT_URL}carrito`,
+                success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.CLIENT_URL}/carrito`,
                 line_items: lineItems, 
             });
 
