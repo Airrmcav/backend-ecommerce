@@ -208,7 +208,7 @@ module.exports = factories.createCoreController(
             default_installments: installments,
           },
           back_urls: {
-            success: `${process.env.CLIENT_URL}/success`,
+            success: `${process.env.CLIENT_URL}/successMercado`,
             failure: `${process.env.CLIENT_URL}/carrito`,
             pending: `${process.env.CLIENT_URL}/success`,
           },
