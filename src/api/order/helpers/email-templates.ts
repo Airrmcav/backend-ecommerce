@@ -94,7 +94,7 @@ export function buildSalesEmailHtml(data: OrderEmailData): string {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
                 <tr>
                   <td style="padding: 16px 20px;">
-                    <p style="margin: 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">ID de Sesión Stripe</p>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">ID de Sesión</p>
                     <p style="margin: 4px 0 0; font-size: 14px; color: #1e40af; font-weight: 600; word-break: break-all;">${data.sessionId}</p>
                   </td>
                 </tr>
