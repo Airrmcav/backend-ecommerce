@@ -25,7 +25,7 @@ export default ({ env }) => ({
           user: env('SMTP_USER'),
           pass: env('SMTP_PASS'),
         },
-        secure: true,
+        secure: env.bool('SMTP_SECURE', false),
       },
       settings: {
         defaultFrom: env('SMTP_FROM'),
