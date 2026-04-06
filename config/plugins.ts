@@ -17,19 +17,13 @@ export default ({ env }) => ({
   },
   email: {
     config: {
-      provider: 'nodemailer',
+      provider: '@strapi/provider-email-resend',
       providerOptions: {
-        host: env('SMTP_HOST', 'smtp.titan.email'),
-        port: env.int('SMTP_PORT', 465),
-        auth: {
-          user: env('SMTP_USER'),
-          pass: env('SMTP_PASS'),
-        },
-        secure: true,
+        apiKey: env('RESEND_API_KEY'),
       },
       settings: {
-        defaultFrom: env('SMTP_FROM'),
-        defaultReplyTo: env('SMTP_FROM'),
+        defaultFrom: env('RESEND_FROM_EMAIL', 'noreply@salmetexmed.com.mx'),
+        defaultReplyTo: env('RESEND_REPLY_TO', 'noreply@salmetexmed.com.mx'),
       },
     },
   },
