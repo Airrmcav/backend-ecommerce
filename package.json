@@ -34,6 +34,7 @@
     "react-router-dom": "^6.0.0",
     "strapi-import-export": "^0.0.1",
     "strapi-plugin-import-export-content": "^0.4.2",
+    "strapi-provider-email-resend": "^1.0.4",
     "stripe": "^18.5.0",
     "styled-components": "^6.0.0"
   },

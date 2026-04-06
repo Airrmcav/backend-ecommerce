@@ -148,43 +148,53 @@ module.exports = factories.createCoreController("api::order.order", ({ strapi })
                 currency: fullSession.currency || 'mxn',
             };
 
-            console.log("📧 Enviando correos en background...");
+            console.log("📧 Enviando correos con Resend...");
             console.log("   Cliente:", customerEmail);
             console.log("   Ventas: ventas@salmetexmed.com.mx");
 
             // ⚡ Enviar emails EN BACKGROUND SIN BLOQUEAR LA RESPUESTA
-            // Esto permite que el frontend reciba la confirmación inmediatamente
-            (async () => {
-                try {
-                    // Enviar email al equipo de ventas
-                    try {
-                        await sendEmail({
-                            to: 'ventas@salmetexmed.com.mx',
-                            subject: `🛒 Nueva Venta - ${customerName} - ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format((fullSession.amount_total || 0) / 100)}`,
-                            html: buildSalesEmailHtml(emailData),
-                        });
-                        console.log("✅ Email enviado a ventas@salmetexmed.com.mx");
-                    } catch (emailError: any) {
-                        console.error("❌ Error enviando email a ventas:", emailError);
-                    }
+            setImmediate(async () => {
+                const emailResults = {
+                    ventas: { sent: false, error: null as string | null },
+                    cliente: { sent: false, email: customerEmail || '', error: null as string | null },
+                };
 
-                    // Enviar email al cliente
-                    if (customerEmail) {
-                        try {
-                            await sendEmail({
-                                to: customerEmail,
-                                subject: `✅ Confirmación de compra - SALMETEX MED`,
-                                html: buildCustomerEmailHtml(emailData),
-                            });
-                            console.log("✅ Email de confirmación enviado al cliente:", customerEmail);
-                        } catch (emailError: any) {
-                            console.error("❌ Error enviando email al cliente:", emailError);
-                        }
-                    }
-                } catch (err) {
-                    console.error("❌ Error en background de emails:", err);
+                // Enviar email al equipo de ventas
+                try {
+                    console.log("📤 Enviando email a ventas@salmetexmed.com.mx...");
+                    await strapi.service('plugin::email.email').send({
+                        to: 'ventas@salmetexmed.com.mx',
+                        subject: `🛒 Nueva Venta - ${customerName} - ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format((fullSession.amount_total || 0) / 100)}`,
+                        html: buildSalesEmailHtml(emailData),
+                    });
+                    emailResults.ventas.sent = true;
+                    console.log("✅ Email de ventas enviado correctamente");
+                } catch (emailError: any) {
+                    emailResults.ventas.error = emailError.message;
+                    console.error("❌ Error enviando email a ventas:", emailError.message);
                 }
-            })().catch(err => console.error("❌ Error en promesa de emails:", err));
+
+                // Enviar email al cliente
+                if (customerEmail) {
+                    try {
+                        console.log("📤 Enviando email de confirmación al cliente...");
+                        await strapi.service('plugin::email.email').send({
+                            to: customerEmail,
+                            subject: `✅ Confirmación de compra - SALMETEX MED`,
+                            html: buildCustomerEmailHtml(emailData),
+                        });
+                        emailResults.cliente.sent = true;
+                        console.log("✅ Email de confirmación enviado al cliente:", customerEmail);
+                    } catch (emailError: any) {
+                        emailResults.cliente.error = emailError.message;
+                        console.error("❌ Error enviando email al cliente:", emailError.message);
+                    }
+                }
+
+                // Log final de resultados
+                console.log("📋 Resumen de emails:");
+                console.log(JSON.stringify(emailResults, null, 2));
+            });
 
             return {
                 success: true,
