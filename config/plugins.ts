@@ -15,8 +15,6 @@ export default ({ env }) => ({
       },
     },
   },
-
-  // --- NUEVA CONFIGURACIÓN DE EMAIL (Agrega esto) ---
   email: {
     config: {
       provider: 'nodemailer',
@@ -27,7 +25,7 @@ export default ({ env }) => ({
           user: env('SMTP_USER'),
           pass: env('SMTP_PASS'),
         },
-        secure: true, // Forzamos true porque Titan usa SSL en el 465
+        secure: true,
       },
       settings: {
         defaultFrom: env('SMTP_FROM'),
