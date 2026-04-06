@@ -20,12 +20,12 @@ export default ({ env }) => ({
       provider: 'nodemailer',
       providerOptions: {
         host: env('SMTP_HOST', 'smtp.titan.email'),
-        port: env.int('SMTP_PORT', 587),
+        port: env.int('SMTP_PORT', 465),
         auth: {
           user: env('SMTP_USER'),
           pass: env('SMTP_PASS'),
         },
-        secure: env.bool('SMTP_SECURE', false),
+        secure: env.bool('SMTP_SECURE', true),
       },
       settings: {
         defaultFrom: env('SMTP_FROM'),
