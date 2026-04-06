@@ -18,6 +18,12 @@ function createTransporter() {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    connectionTimeout: 5000,  // 5 segundos max para conectar
+    socketTimeout: 10000,     // 10 segundos max para enviar
+    pool: {
+      maxConnections: 5,
+      maxMessages: 100,
+    },
   });
 }
 
@@ -32,8 +38,14 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email enviado a ${to}: ${info.messageId}`);
+    // Envolver con timeout de 15 segundos
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Email send timeout after 15 seconds')), 15000)
+    );
+    
+    const info = await Promise.race([sendPromise, timeoutPromise]);
+    console.log(`✅ Email enviado a ${to}: ${(info as any).messageId}`);
   } catch (error) {
     console.error(`❌ Error enviando email a ${to}:`, error);
     throw error;
