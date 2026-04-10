@@ -1,41 +1,38 @@
-"use strict";
+/**
+ * order controller
+ */
 
+import { factories } from "@strapi/strapi";
 // @ts-ignore
-const stripe = require("stripe")(process.env.STRIPE_KEY);
+import Stripe from "stripe";
 // @ts-ignore
-const { MercadoPagoConfig, Preference } = require("mercadopago");
-
-import { sendEmail } from "../helpers/send-email";
+import { MercadoPagoConfig, Preference } from "mercadopago";
 import {
   buildSalesEmailHtml,
   buildCustomerEmailHtml,
   type OrderEmailData,
 } from "../helpers/email-templates";
 
-/**
- * order controller
- */
-
-// export default factories.createCoreController('api::order.order');
-
-import { factories } from "@strapi/strapi";
+// Configurar Stripe (sin apiVersion explícito para evitar conflictos)
+const stripeClient = new Stripe.Stripe(process.env.STRIPE_KEY as string);
 
 // Configurar Mercado Pago
 const mpConfig = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN as string,
 });
 
-module.exports = factories.createCoreController(
+export default factories.createCoreController(
   "api::order.order",
   ({ strapi }) => ({
+    /**
+     * Crear sesión de Stripe Checkout
+     */
     async create(ctx) {
-      //@ts-ignore
-      const { products } = ctx.request.body;
+      const { products } = ctx.request.body as { products: any[] };
 
       try {
         const lineItems = await Promise.all(
-          products.map(async (product) => {
-            // console.log("Producto recibido:", product);
+          products.map(async (product: any) => {
             const item = await strapi.entityService.findOne(
               "api::product.product",
               product.id,
@@ -54,7 +51,7 @@ module.exports = factories.createCoreController(
           }),
         );
 
-        const session = await stripe.checkout.sessions.create({
+        const session = await stripeClient.checkout.sessions.create({
           shipping_address_collection: { allowed_countries: ["MX"] },
           payment_method_types: ["card"],
           mode: "payment",
@@ -63,12 +60,25 @@ module.exports = factories.createCoreController(
           line_items: lineItems,
         });
 
-        await strapi
-          .service("api::order.order")
-          .create({ data: { products, stripeId: session.id } });
+        const totalAmount = lineItems.reduce(
+          (sum: number, item: any) =>
+            sum + (item.price_data.unit_amount * item.quantity) / 100,
+          0,
+        );
+
+        await strapi.service("api::order.order").create({
+          data: {
+            products,
+            stripeId: session.id,
+            paymentMethod: "stripe",
+            status: "pending",
+            totalAmount,
+            currency: "mxn",
+          },
+        } as any);
 
         return { stripeSession: session };
-      } catch (error) {
+      } catch (error: any) {
         console.error("🚨 Error en la orden:", error);
         ctx.response.status = 500;
         return { error: error.message };
@@ -76,31 +86,23 @@ module.exports = factories.createCoreController(
     },
 
     /**
-     * Confirmar sesión de Stripe y enviar correos
-     * Se llama desde la página de éxito con el session_id
+     * Confirmar sesión de Stripe y actualizar orden con datos del cliente
      */
     async confirmStripeSession(ctx) {
       try {
-        // @ts-ignore
-        const { session_id } = ctx.request.body;
+        const { session_id } = ctx.request.body as { session_id: string };
 
         if (!session_id) {
           ctx.response.status = 400;
           return { error: "session_id es requerido" };
         }
 
-        // console.log("📩 Confirmando sesión de Stripe:", session_id);
-
-        // Recuperar la sesión completa
-        const fullSession = await stripe.checkout.sessions.retrieve(session_id);
-
-        // Recuperar line items por separado (más confiable)
+        const fullSession =
+          await stripeClient.checkout.sessions.retrieve(session_id);
         const lineItemsResponse =
-          await stripe.checkout.sessions.listLineItems(session_id);
+          await stripeClient.checkout.sessions.listLineItems(session_id);
 
-        // Verificar que el pago fue exitoso
         if (fullSession.payment_status !== "paid") {
-          console.log("⚠️ Sesión no pagada:", fullSession.payment_status);
           return {
             success: false,
             message: "El pago aún no se ha completado",
@@ -111,110 +113,83 @@ module.exports = factories.createCoreController(
         const customerEmail = fullSession.customer_details?.email;
         const customerName = fullSession.customer_details?.name || "Cliente";
 
-        // Stripe puede guardar la dirección de envío en diferentes campos según la versión del API
+        const fullSessionAny = fullSession as any;
         const shippingDetails =
-          fullSession.shipping_details ||
-          fullSession.shipping ||
-          fullSession.collected_information?.shipping_details;
-
-        const shippingAddress =
+          fullSessionAny.shipping_details || fullSessionAny.shipping;
+        const shippingAddressRaw =
           shippingDetails?.address ||
           fullSession.customer_details?.address ||
           {};
 
-        // Debug: ver qué datos devuelve Stripe
-        // console.log("📋 Datos de sesión Stripe:");
-        // console.log("   customer_details:", JSON.stringify(fullSession.customer_details, null, 2));
-        // console.log("   shipping_details:", JSON.stringify(fullSession.shipping_details, null, 2));
-        // console.log("   shipping:", JSON.stringify(fullSession.shipping, null, 2));
-        // console.log("   collected_information:", JSON.stringify(fullSession.collected_information, null, 2));
-        // console.log("   line_items:", JSON.stringify(lineItemsResponse.data, null, 2));
+        const addressForDB = {
+          line1: shippingAddressRaw.line1 || "",
+          line2: shippingAddressRaw.line2 || "",
+          city: shippingAddressRaw.city || "",
+          state: shippingAddressRaw.state || "",
+          postal_code: shippingAddressRaw.postal_code || "",
+          country: shippingAddressRaw.country || "MX",
+        };
 
-        const parsedLineItems = (lineItemsResponse.data || []).map((item) => ({
-          description: item.description || "Producto",
-          quantity: item.quantity || 1,
-          amount_total: item.amount_total || 0,
-          currency: item.currency || "mxn",
-        }));
+        const parsedLineItems = (lineItemsResponse.data || []).map(
+          (item: any) => ({
+            description: item.description || "Producto",
+            quantity: item.quantity || 1,
+            amount_total: item.amount_total || 0,
+            currency: item.currency || "mxn",
+          }),
+        );
 
-        // Construir datos del email
+        const existingOrder = await strapi.db
+          .query("api::order.order")
+          .findOne({
+            where: { stripeId: session_id },
+          });
+
+        if (existingOrder) {
+          await strapi.service("api::order.order").update(existingOrder.id, {
+            data: {
+              customerEmail: customerEmail || "",
+              customerName,
+              shippingAddress: addressForDB,
+              status: "paid",
+            },
+          } as any);
+        }
+
         const emailData: OrderEmailData = {
           sessionId: fullSession.id,
           customerName,
           customerEmail: customerEmail || "",
           shippingName: shippingDetails?.name || customerName,
-          shippingAddress: {
-            line1: shippingAddress?.line1 || "",
-            line2: shippingAddress?.line2 || "",
-            city: shippingAddress?.city || "",
-            state: shippingAddress?.state || "",
-            postal_code: shippingAddress?.postal_code || "",
-            country: shippingAddress?.country || "MX",
-          },
+          shippingAddress: addressForDB,
           lineItems: parsedLineItems,
           totalAmount: fullSession.amount_total || 0,
           currency: fullSession.currency || "mxn",
         };
 
-        console.log("📧 Enviando correos con Resend...");
-        console.log("   Cliente:", customerEmail);
-        console.log("   Ventas: ventas@salmetexmed.com.mx");
-
-        // ⚡ Enviar emails EN BACKGROUND SIN BLOQUEAR LA RESPUESTA
         setImmediate(async () => {
-          const emailResults = {
-            ventas: { sent: false, error: null as string | null },
-            cliente: {
-              sent: false,
-              email: customerEmail || "",
-              error: null as string | null,
-            },
-          };
-
-          // Enviar email al equipo de ventas
           try {
-            console.log("📤 Enviando email a ventas@salmetexmed.com.mx...");
             await strapi.service("plugin::email.email").send({
               to: "ventas@salmetexmed.com.mx",
-              subject: `🛒 Nueva Venta - ${customerName} - ${new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format((fullSession.amount_total || 0) / 100)}`,
+              subject: `🛒 Nueva Venta - ${customerName} - ${new Intl.NumberFormat(
+                "es-MX",
+                {
+                  style: "currency",
+                  currency: "MXN",
+                },
+              ).format((fullSession.amount_total || 0) / 100)}`,
               html: buildSalesEmailHtml(emailData),
             });
-            emailResults.ventas.sent = true;
-            console.log("✅ Email de ventas enviado correctamente");
-          } catch (emailError: any) {
-            emailResults.ventas.error = emailError.message;
-            console.error(
-              "❌ Error enviando email a ventas:",
-              emailError.message,
-            );
-          }
-
-          // Enviar email al cliente
-          if (customerEmail) {
-            try {
-              console.log("📤 Enviando email de confirmación al cliente...");
+            if (customerEmail) {
               await strapi.service("plugin::email.email").send({
                 to: customerEmail,
                 subject: `✅ Confirmación de compra - SALMETEX MED`,
                 html: buildCustomerEmailHtml(emailData),
               });
-              emailResults.cliente.sent = true;
-              console.log(
-                "✅ Email de confirmación enviado al cliente:",
-                customerEmail,
-              );
-            } catch (emailError: any) {
-              emailResults.cliente.error = emailError.message;
-              console.error(
-                "❌ Error enviando email al cliente:",
-                emailError.message,
-              );
             }
+          } catch (e: any) {
+            console.error("Error enviando correos:", e.message);
           }
-
-          // Log final de resultados
-          console.log("📋 Resumen de emails:");
-          console.log(JSON.stringify(emailResults, null, 2));
         });
 
         return {
@@ -223,7 +198,7 @@ module.exports = factories.createCoreController(
           customerName,
           customerEmail,
           shippingName: shippingDetails?.name || customerName,
-          shippingAddress: shippingAddress || null,
+          shippingAddress: addressForDB,
           lineItems: parsedLineItems,
           totalAmount: fullSession.amount_total,
           currency: fullSession.currency,
@@ -235,18 +210,46 @@ module.exports = factories.createCoreController(
       }
     },
 
+    /**
+     * Crear preferencia de Mercado Pago
+     */
     async createMercadoPagoPreference(ctx) {
-      // @ts-ignore
-      const { products, installments = 12 } = ctx.request.body;
+      const {
+        products,
+        installments = 12,
+        shippingAddress,
+        customerEmail,
+        customerName,
+      } = ctx.request.body as {
+        products: any[];
+        installments?: number;
+        shippingAddress: any;
+        customerEmail?: string;
+        customerName?: string;
+      };
+
+      if (
+        !shippingAddress ||
+        !shippingAddress.line1 ||
+        !shippingAddress.city ||
+        !shippingAddress.postal_code
+      ) {
+        ctx.response.status = 400;
+        return {
+          error:
+            "La dirección de envío es obligatoria (calle, ciudad y código postal).",
+        };
+      }
 
       try {
-        // Obtener detalles de los productos
         const items = await Promise.all(
-          products.map(async (product) => {
+          products.map(async (product: any) => {
             const item = await strapi.entityService.findOne(
               "api::product.product",
               product.id,
-              { fields: ["productName", "price"] },
+              {
+                fields: ["productName", "price"],
+              },
             );
             return {
               id: product.id,
@@ -258,42 +261,85 @@ module.exports = factories.createCoreController(
           }),
         );
 
-        // Calcular total
         const totalAmount = items.reduce(
-          (sum, item) => sum + item.unit_price * item.quantity,
+          (sum: number, item: any) => sum + item.unit_price * item.quantity,
           0,
         );
 
-        // Crear preferencia de Mercado Pago
+        const newOrder = await strapi.service("api::order.order").create({
+          data: {
+            products: items,
+            installments,
+            shippingAddress,
+            customerEmail: customerEmail || null,
+            customerName: customerName || "Cliente",
+            status: "pending",
+            paymentMethod: "mercadopago",
+            totalAmount,
+            currency: "MXN",
+            mercadoPagoId: null,
+          },
+        } as any);
+
         const preference = new Preference(mpConfig);
+
+        const isSandbox =
+          process.env.MERCADO_PAGO_ACCESS_TOKEN?.startsWith("TEST-");
 
         const preferenceData = {
           items,
+          auto_return: "approved",
           payer: {
-            email: ctx.request.body.email || "test@test.com",
+            email: customerEmail || "test_user_123456@testuser.com",
+            name: customerName || "Cliente",
+            address: {
+              zip_code: shippingAddress.postal_code,
+              street_name: shippingAddress.line1,
+              street_number: shippingAddress.line2 || "",
+              city_name: shippingAddress.city,
+              state_name: shippingAddress.state,
+              country_name: shippingAddress.country || "MX",
+            },
           },
-          payment_methods: {
-            default_installments: installments,
+          shipments: {
+            receiver_address: {
+              zip_code: shippingAddress.postal_code,
+              street_name: shippingAddress.line1,
+              street_number: shippingAddress.line2 || "",
+              city_name: shippingAddress.city,
+              state_name: shippingAddress.state,
+              country_name: shippingAddress.country || "MX",
+              apartment: shippingAddress.apartment || "",
+            },
           },
           back_urls: {
             success: `${process.env.CLIENT_URL}/successMercado`,
             failure: `${process.env.CLIENT_URL}/carrito`,
             pending: `${process.env.CLIENT_URL}/success`,
           },
-          external_reference: `order-${Date.now()}`,
-          // Sin notification_url
+          external_reference: newOrder.id.toString(),
+          notification_url: `${process.env.BACKEND_URL}/api/order/mercadopago-webhook`,
         };
 
         const response = await preference.create({ body: preferenceData });
 
-        // Guardar la orden con referencia a Mercado Pago
-        await strapi.service("api::order.order").create({
-          data: {
-            products,
-            mercadoPagoId: response.id,
-            installments,
+        await strapi.service("api::order.order").update(newOrder.id, {
+          data: { mercadoPagoId: response.id },
+        } as any);
+
+        // 👇 Esto es lo clave
+        return {
+          mercadoPagoPreference: {
+            id: response.id,
+            init_point: isSandbox
+              ? response.sandbox_init_point
+              : response.init_point,
           },
-        });
+        };
+
+        await strapi.service("api::order.order").update(newOrder.id, {
+          data: { mercadoPagoId: response.id },
+        } as any);
 
         return {
           mercadoPagoPreference: {
@@ -301,68 +347,157 @@ module.exports = factories.createCoreController(
             init_point: response.init_point,
           },
         };
-      } catch (error) {
+      } catch (error: any) {
         console.error("🚨 Error al crear preferencia de Mercado Pago:", error);
-        console.log("CLIENT_URL:", process.env.CLIENT_URL);
         ctx.response.status = 500;
         return { error: error.message };
       }
     },
 
-   async confirmMercadoPago(ctx) {
-  try {
-    // @ts-ignore
-    const { payment_id, status, external_reference, merchant_order_id } = ctx.request.body;
-
-    if (!payment_id) {
-      ctx.response.status = 400;
-      return { error: 'payment_id es requerido' };
-    }
-
-    if (status !== 'approved') {
-      return { success: false, message: 'El pago no está aprobado' };
-    }
-
-    const emailData: OrderEmailData = {
-      sessionId: String(payment_id),
-      customerName: 'Cliente',
-      customerEmail: '',
-      shippingName: 'Cliente',
-      shippingAddress: {
-        line1: '', line2: '', city: '',
-        state: '', postal_code: '', country: 'MX',
-      },
-      lineItems: [],
-      totalAmount: 0,
-      currency: 'mxn',
-    };
-
-    setImmediate(async () => {
+    /**
+     * Confirmar pago de Mercado Pago
+     */
+    async confirmMercadoPago(ctx) {
+      
       try {
-        await strapi.service('plugin::email.email').send({
-          to: 'ventas@salmetexmed.com.mx',
-          subject: `🛒 Nueva Venta MP - Pago #${payment_id}`,
-          html: buildSalesEmailHtml(emailData),
-        });
-        console.log("✅ Email de ventas MP enviado");
-      } catch (e: any) {
-        console.error("❌ Error email ventas MP:", e.message);
-      }
-    });
+        const { payment_id, status, external_reference } = ctx.request.body as {
+          payment_id: string;
+          status: string;
+          external_reference: string;
+        };
 
-    return {
-      success: true,
-      emailsQueued: true,
-      customerName: 'Cliente',
-      customerEmail: '',
-      totalAmount: 0,
-      currency: 'mxn',
-    };
-  } catch (error: any) {
-    console.error("🚨 Error confirmando pago MP:", error);
-    ctx.response.status = 500;
-    return { error: error.message };
-  }
-},
+        if (!payment_id) {
+          ctx.response.status = 400;
+          return { error: "payment_id es requerido" };
+        }
+
+        if (status !== "approved") {
+          return { success: false, message: "El pago no está aprobado" };
+        }
+
+        const orderId = parseInt(external_reference, 10);
+
+        if (!orderId || isNaN(orderId)) {
+          ctx.response.status = 400;
+          return { error: "external_reference inválido" };
+        }
+
+        const order = await strapi.entityService.findOne(
+          "api::order.order",
+          orderId,
+          {
+            fields: [
+              "shippingAddress",
+              "customerName",
+              "customerEmail",
+              "totalAmount",
+              "products",
+              "status", 
+            ],
+          },
+        );
+
+        if (!order) {
+          return { success: false, message: "Orden no encontrada" };
+        }
+
+        /**
+         * 🔥 IDPOTENCIA: si ya está pagada, NO volver a procesar
+         */
+        if (order.status === "paid") {
+          return {
+            success: true,
+            message: "Orden ya procesada",
+            customerName: order.customerName,
+            customerEmail: order.customerEmail,
+            shippingAddress: order.shippingAddress,
+            totalAmount: (order.totalAmount as number) * 100,
+            currency: "mxn",
+            lineItems: (order.products as any[]).map((p: any) => ({
+              description: p.title || "Producto",
+              quantity: p.quantity || 1,
+              amount_total: (p.unit_price || 0) * 100,
+              currency: "MXN",
+            })),
+          };
+        }
+
+        /**
+         * ✅ Marcar como pagado
+         */
+        await strapi.service("api::order.order").update(orderId, {
+          data: { status: "paid" },
+        } as any);
+
+        const shippingAddressForEmail = (order.shippingAddress as any) || {
+          line1: "",
+          line2: "",
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "MX",
+        };
+
+        const emailData: OrderEmailData = {
+          sessionId: String(payment_id),
+          customerName: order.customerName || "Cliente",
+          customerEmail: order.customerEmail || "",
+          shippingName: order.customerName || "Cliente",
+          shippingAddress: shippingAddressForEmail,
+          lineItems: (order.products as any[]).map((p: any) => ({
+            description: p.title || "Producto",
+            quantity: p.quantity || 1,
+            amount_total: (p.unit_price || 0) * 100,
+            currency: "MXN",
+          })),
+          totalAmount: (order.totalAmount as number) * 100,
+          currency: "mxn",
+        };
+
+        /**
+         * 📧 Enviar correos SOLO UNA VEZ
+         */
+        setImmediate(async () => {
+          try {
+            await strapi.service("plugin::email.email").send({
+              to: "ventas@salmetexmed.com.mx",
+              subject: `🛒 Nueva Venta MP - ${order.customerName} - $${order.totalAmount} MXN`,
+              html: buildSalesEmailHtml(emailData),
+            });
+
+            if (order.customerEmail) {
+              await strapi.service("plugin::email.email").send({
+                to: order.customerEmail,
+                subject: `✅ Confirmación de compra - SALMETEXMED`,
+                html: buildCustomerEmailHtml(emailData),
+              });
+            }
+          } catch (e: any) {
+            console.error("Error enviando correos MP:", e.message);
+          }
+        });
+
+        return {
+          success: true,
+          emailsQueued: true,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          shippingAddress: order.shippingAddress,
+          totalAmount: (order.totalAmount as number) * 100,
+          currency: "mxn",
+          lineItems: (order.products as any[]).map((p: any) => ({
+            description: p.title || "Producto",
+            quantity: p.quantity || 1,
+            amount_total: (p.unit_price || 0) * 100,
+            currency: "MXN",
+          })),
+        };
+      } catch (error: any) {
+        console.error("🚨 Error confirmando pago MP:", error);
+        ctx.response.status = 500;
+        return { error: error.message };
+      }
+    },
+    
   }),
 );
