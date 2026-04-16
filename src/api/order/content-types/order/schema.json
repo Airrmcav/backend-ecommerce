@@ -12,10 +12,57 @@
   "pluginOptions": {},
   "attributes": {
     "stripeId": {
-      "type": "string"
+      "type": "string",
+      "private": true
+    },
+    "mercadoPagoId": {
+      "type": "string",
+      "private": true
     },
     "products": {
       "type": "json"
+    },
+    "shippingAddress": {
+      "type": "json"
+    },
+    "customerEmail": {
+      "type": "email"
+    },
+    "customerName": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "paid",
+        "shipped",
+        "cancelled",
+        "refunded"
+      ],
+      "default": "pending",
+      "required": true
+    },
+    "installments": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 12
+    },
+    "totalAmount": {
+      "type": "decimal",
+      "required": false
+    },
+    "currency": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "enum": [
+        "stripe",
+        "mercadopago"
+      ]
     }
   }
 }

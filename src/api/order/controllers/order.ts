@@ -354,6 +354,9 @@ export default factories.createCoreController(
       }
     },
 
+    /**
+     * Confirmar pago de Mercado Pago
+     */
     async confirmMercadoPago(ctx) {
       
       try {
@@ -495,6 +498,6 @@ export default factories.createCoreController(
         return { error: error.message };
       }
     },
-
+    
   }),
 );
