@@ -36,8 +36,14 @@ export default factories.createCoreController(
             const item = await strapi.entityService.findOne(
               "api::product.product",
               product.id,
-              { fields: ["productName", "price"] },
+              { fields: ["productName", "price", "purchaseType"] },
             );
+            if (item.purchaseType !== "buy") {
+              ctx.response.status = 400;
+              return {
+                error: `El producto "${item.productName}" solo está disponible para cotización`,
+              };
+            }
             return {
               price_data: {
                 currency: "mxn",
@@ -248,9 +254,15 @@ export default factories.createCoreController(
               "api::product.product",
               product.id,
               {
-                fields: ["productName", "price"],
+                fields: ["productName", "price", "purchaseType"],
               },
             );
+            if (item.purchaseType !== "buy") {
+              ctx.response.status = 400;
+              throw new Error(
+                  `El producto "${item.productName}" solo está disponible para cotización`,
+              );
+            }
             return {
               id: product.id,
               title: item.productName,
@@ -358,7 +370,6 @@ export default factories.createCoreController(
      * Confirmar pago de Mercado Pago
      */
     async confirmMercadoPago(ctx) {
-      
       try {
         const { payment_id, status, external_reference } = ctx.request.body as {
           payment_id: string;
@@ -392,7 +403,7 @@ export default factories.createCoreController(
               "customerEmail",
               "totalAmount",
               "products",
-              "status", 
+              "status",
             ],
           },
         );
@@ -498,6 +509,5 @@ export default factories.createCoreController(
         return { error: error.message };
       }
     },
-    
   }),
 );

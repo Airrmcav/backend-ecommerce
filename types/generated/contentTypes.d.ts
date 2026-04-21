@@ -490,12 +490,14 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     productName: Schema.Attribute.String;
     programa: Schema.Attribute.Relation<'oneToOne', 'api::programa.programa'>;
     publishedAt: Schema.Attribute.DateTime;
+    purchaseType: Schema.Attribute.Enumeration<['buy', 'quote', 'contact']>;
     slug: Schema.Attribute.UID<'productName'>;
     textSeo: Schema.Attribute.Text;
     topProduct: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    variants: Schema.Attribute.Component<'product.product-variant', true>;
   };
 }
 
