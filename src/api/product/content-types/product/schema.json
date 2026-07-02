@@ -76,6 +76,19 @@
     },
     "mercadolibre_url": {
       "type": "string"
+    },
+    "purchaseType": {
+      "type": "enumeration",
+      "enum": [
+        "buy",
+        "quote",
+        "contact"
+      ]
+    },
+    "variants": {
+      "type": "component",
+      "component": "product.product-variant",
+      "repeatable": true
     }
   }
 }

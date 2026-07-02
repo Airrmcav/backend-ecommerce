@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_product_product_variants",
+  "info": {
+    "displayName": "product.variant"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "stock": {
+      "type": "integer"
+    },
+    "isDefault": {
+      "type": "boolean"
+    }
+  },
+  "config": {}
+}
