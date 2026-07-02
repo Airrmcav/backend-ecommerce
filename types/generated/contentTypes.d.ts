@@ -465,7 +465,12 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   attributes: {
     active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     area: Schema.Attribute.Enumeration<
-      ['Insumos m\u00E9dicos', 'Equipo M\u00E9dico', 'Mobiliario m\u00E9dico']
+      [
+        'Insumos m\u00E9dicos',
+        'Equipo M\u00E9dico',
+        'Mobiliario m\u00E9dico',
+        'Medicamentos',
+      ]
     >;
     breadCrumbText: Schema.Attribute.Text;
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;

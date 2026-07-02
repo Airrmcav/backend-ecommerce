@@ -60,7 +60,8 @@
       "enum": [
         "Insumos médicos",
         "Equipo Médico",
-        "Mobiliario médico"
+        "Mobiliario médico",
+        "Medicamentos"
       ]
     },
     "textSeo": {
